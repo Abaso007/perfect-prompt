@@ -43,22 +43,24 @@ def preprocess_df(df):
 
 
 def classify_prompts(df, prompts):
-    response = co.classify(model='40e50ea7-0586-4f53-ab2d-96296048993f-ft',
-    inputs=prompts)
-    return response
+    return co.classify(
+        model='40e50ea7-0586-4f53-ab2d-96296048993f-ft', inputs=prompts
+    )
 
 def create_variations(prompt):
-    # given a prompt and a keyword, creates variations of the prompts using the keyword
-    generated = co.generate(model=MODEL_NAME, prompt=prompt, num_generations=5,
-                            temperature=0.9, max_tokens=50)
-    return generated
+    return co.generate(
+        model=MODEL_NAME,
+        prompt=prompt,
+        num_generations=5,
+        temperature=0.9,
+        max_tokens=50,
+    )
 
 
 def create_prompt(input_prompt, keyword):
     initial_prompt = f"Rephrase this prompt with more details, in a list:\n {input_prompt} \n"
     end_prompt = "More details:"
-    final_prompts = initial_prompt + end_prompt
-    return final_prompts
+    return initial_prompt + end_prompt
 
 
 def make_and_grade_variations(df, input_prompt, num_options=3):
@@ -83,15 +85,11 @@ def make_and_grade_variations(df, input_prompt, num_options=3):
     labels = classify_prompts(df, list_of_gens)
     # find prompts with highest probability
     print(labels.classifications)
-    filtered_prompts = []
-
-    # pull out the classifications
-    # pull out only the predictions that have our keyword
-  
-    for output, prompt in zip(labels.classifications, list_of_gens):
-        if output.prediction == keyword:
-            filtered_prompts.append([prompt, output.confidence])
-
+    filtered_prompts = [
+        [prompt, output.confidence]
+        for output, prompt in zip(labels.classifications, list_of_gens)
+        if output.prediction == keyword
+    ]
     #return_dict = {"prompts": list_of_gens, "probs": probs}
     return_dict = {"prompts": [x[0] for x in filtered_prompts], "probs": [x[1] for x in filtered_prompts]}
     return_df = pd.DataFrame(return_dict)
